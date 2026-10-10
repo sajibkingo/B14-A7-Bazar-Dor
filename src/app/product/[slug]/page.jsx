@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { formatBengaliPrice, toBengaliNumber } from "@/lib/utils";
@@ -23,10 +23,13 @@ export default function ProductDetailPage() {
 
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isNotFound, setIsNotFound] = useState(false);
 
     useEffect(() => {
         if (!isPending && !user) {
-            toast.info("পণ্যের বিস্তারিত দেখতে অনুগ্রহ করে সাইন ইন করুন");
+            toast.error("পণ্যের বিস্তারিত দেখতে অনুগ্রহ করে সাইন ইন করুন", {
+                toastId: "auth-redirect-toast",
+            });
             router.push("/signin");
         }
     }, [user, isPending, router]);
@@ -48,16 +51,23 @@ export default function ProductDetailPage() {
                         String(item.slug) === rawParam ||
                         encodeURIComponent(String(item.slug)) === encodeURIComponent(rawParam)
                 );
-                setProduct(found || null);
+
+                if (!found) {
+                    setIsNotFound(true);
+                } else {
+                    setProduct(found);
+                }
             } catch (err) {
-                console.error("Error fetching product:", err);
+                setIsNotFound(true);
             } finally {
                 setLoading(false);
             }
         }
 
-        fetchProduct();
-    }, [rawParam]);
+        if (user) {
+            fetchProduct();
+        }
+    }, [rawParam, user]);
 
     if (isPending || (!user && !isPending)) {
         return (
@@ -67,38 +77,26 @@ export default function ProductDetailPage() {
         );
     }
 
+    if (isNotFound) {
+        notFound();
+    }
+
     if (loading) {
         return (
             <div className="w-full space-y-8 animate-pulse pb-16">
                 <div className="h-5 bg-gray-200 rounded w-48"></div>
-                <div className="bg-white rounded-3xl p-8 border border-gray-100 h-44"></div>
+                <div className="bg-[#fcfdfc] rounded-3xl p-8 border border-gray-100 h-44"></div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div className="bg-white rounded-2xl p-6 border border-gray-100 h-32"></div>
-                    <div className="bg-white rounded-2xl p-6 border border-gray-100 h-32"></div>
-                    <div className="bg-white rounded-2xl p-6 border border-gray-100 h-32"></div>
+                    <div className="bg-[#fcfdfc] rounded-2xl p-6 border border-gray-100 h-32"></div>
+                    <div className="bg-[#fcfdfc] rounded-2xl p-6 border border-gray-100 h-32"></div>
+                    <div className="bg-[#fcfdfc] rounded-2xl p-6 border border-gray-100 h-32"></div>
                 </div>
-                <div className="bg-white rounded-3xl p-8 border border-gray-100 h-80"></div>
+                <div className="bg-[#fcfdfc] rounded-3xl p-8 border border-gray-100 h-80"></div>
             </div>
         );
     }
 
-    if (!product) {
-        return (
-            <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center max-w-md mx-auto my-12 shadow-sm space-y-4">
-                <span className="text-5xl block">⚠️</span>
-                <h2 className="text-xl font-bold text-gray-800">পণ্যটি পাওয়া যায়নি</h2>
-                <p className="text-sm text-gray-500">
-                    আপনি যে পণ্যটি খুঁজছেন তা এই মুহূর্তে তালিকায় নেই।
-                </p>
-                <Link
-                    href="/"
-                    className="inline-block px-6 py-2.5 bg-[#3c7844] hover:bg-[#326438] text-white font-bold rounded-xl text-sm transition"
-                >
-                    হোম পেজে ফিরে যান
-                </Link>
-            </div>
-        );
-    }
+    if (!product) return null;
 
     const rawUnit = product.unit || "kg";
     const unit = UNIT_MAP[rawUnit.toLowerCase()] || rawUnit;
@@ -145,7 +143,6 @@ export default function ProductDetailPage() {
 
     return (
         <div className="w-full space-y-8 pb-16 font-sans">
-            {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 font-medium">
                 <Link href="/" className="hover:text-black transition">
                     হোম
@@ -161,7 +158,6 @@ export default function ProductDetailPage() {
                 <span className="text-gray-900 font-semibold">{product.nameBn}</span>
             </nav>
 
-            {/* Top Banner Card */}
             <div className="bg-[#fcfdfc] rounded-3xl p-6 sm:p-10 border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div className="flex items-center gap-6">
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-5xl shrink-0">
@@ -195,7 +191,6 @@ export default function ProductDetailPage() {
                 </div>
             </div>
 
-            {/* দামের সারসংক্ষেপ */}
             <div>
                 <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4">
                     দামের সারসংক্ষেপ
@@ -239,7 +234,6 @@ export default function ProductDetailPage() {
                 </div>
             </div>
 
-            {/* বাজারভিত্তিক আজকের দাম */}
             <div>
                 <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4">
                     বাজারভিত্তিক আজকের দাম

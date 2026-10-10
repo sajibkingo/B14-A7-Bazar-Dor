@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import Skeleton from "@/components/Skeleton";
-import { toBengaliNumber } from "@/lib/utils";
+import SortDropdown from "@/components/SortDropdown";
+import { toBengaliNumber, parseNumericValue } from "@/lib/utils";
 
 export default function CategoryPage() {
     const params = useParams();
@@ -14,6 +15,7 @@ export default function CategoryPage() {
     const [category, setCategory] = useState(null);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isInvalid, setIsInvalid] = useState(false);
     const [sortBy, setSortBy] = useState("default");
 
     useEffect(() => {
@@ -53,10 +55,14 @@ export default function CategoryPage() {
                     );
                 }
 
-                setCategory(matchedCat);
-                setProducts(matchedProducts);
+                if (!matchedCat && matchedProducts.length === 0) {
+                    setIsInvalid(true);
+                } else {
+                    setCategory(matchedCat);
+                    setProducts(matchedProducts);
+                }
             } catch (err) {
-                console.error("Error loading category page data:", err);
+                setIsInvalid(true);
             } finally {
                 setLoading(false);
             }
@@ -65,9 +71,13 @@ export default function CategoryPage() {
         loadCategoryData();
     }, [rawSlug]);
 
+    if (isInvalid) {
+        notFound();
+    }
+
     const sortedProducts = [...products].sort((a, b) => {
-        const priceA = a.today ?? a.price ?? 0;
-        const priceB = b.today ?? b.price ?? 0;
+        const priceA = parseNumericValue(a.today ?? a.price ?? 0);
+        const priceB = parseNumericValue(b.today ?? b.price ?? 0);
 
         if (sortBy === "lowToHigh") return priceA - priceB;
         if (sortBy === "highToLow") return priceB - priceA;
@@ -77,32 +87,14 @@ export default function CategoryPage() {
     if (loading) {
         return (
             <div className="w-full space-y-6 pb-16 font-sans">
-                <div className="bg-[#fcfdfc] rounded-3xl p-6 sm:p-8 border border-gray-100 h-32 animate-pulse"></div>
-                <div className="bg-[#fcfdfc] rounded-2xl p-4 border border-gray-100 h-16 animate-pulse"></div>
+                <div className="bg-[#fcfdfc] rounded-3xl p-6 sm:p-8 border border-gray-100 h-28 animate-pulse"></div>
+                <div className="bg-[#fcfdfc] rounded-2xl p-4 border border-gray-100 h-14 animate-pulse"></div>
                 <div className="h-4 bg-gray-200 rounded w-36 animate-pulse"></div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <Skeleton key={i} />
                     ))}
                 </div>
-            </div>
-        );
-    }
-
-    if (!category && products.length === 0) {
-        return (
-            <div className="bg-[#fcfdfc] rounded-3xl border border-gray-100 p-12 text-center max-w-md mx-auto my-12 shadow-sm space-y-4">
-                <span className="text-5xl block">⚠️</span>
-                <h2 className="text-xl font-bold text-gray-800">ক্যাটাগরি পাওয়া যায়নি</h2>
-                <p className="text-sm text-gray-500">
-                    আপনি যে ক্যাটাগরিটি খুঁজছেন তার কোনো অস্তিত্ব নেই অথবা লিঙ্কটি সঠিক নয়।
-                </p>
-                <Link
-                    href="/"
-                    className="inline-block px-6 py-2.5 bg-[#3c7844] hover:bg-[#326438] text-white font-bold rounded-xl text-sm transition"
-                >
-                    হোম পেজে ফিরে যান
-                </Link>
             </div>
         );
     }
@@ -128,21 +120,7 @@ export default function CategoryPage() {
             </div>
 
             <div className="bg-[#fcfdfc] rounded-2xl px-6 py-4 border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex justify-end items-center">
-                <div className="flex items-center gap-3">
-                    <label htmlFor="sort" className="text-xs sm:text-sm font-semibold text-gray-600">
-                        সাজান
-                    </label>
-                    <select
-                        id="sort"
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="select select-bordered select-sm bg-white border-gray-200 rounded-xl text-xs sm:text-sm font-medium text-gray-800 focus:border-[#3c7844] focus:outline-none"
-                    >
-                        <option value="default">ডিফল্ট</option>
-                        <option value="lowToHigh">দাম: কম থেকে বেশি</option>
-                        <option value="highToLow">দাম: বেশি থেকে কম</option>
-                    </select>
-                </div>
+                <SortDropdown value={sortBy} onChange={setSortBy} />
             </div>
 
             <p className="text-xs sm:text-sm text-gray-500 font-medium pl-1">

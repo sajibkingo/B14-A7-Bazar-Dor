@@ -14,9 +14,20 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="bn" data-theme="light">
-      <body className="min-h-screen flex flex-col bg-[#fbfcfb] text-gray-900 antialiased">
+      <body className="min-h-screen flex flex-col bg-[#fbfcfb] text-gray-900 antialiased selection:bg-emerald-100 selection:text-emerald-900">
         <AuthProvider>
-          <ToastContainer position="top-center" autoClose={3000} />
+          <ToastContainer
+            position="top-center"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
           <Navbar />
           <PriceTicker />
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">

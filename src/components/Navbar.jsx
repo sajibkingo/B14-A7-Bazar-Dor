@@ -38,7 +38,7 @@ export default function Navbar() {
             await signOut();
             toast.success("সফলভাবে লগআউট হয়েছে");
             router.push("/");
-        } catch {
+        } catch (err) {
             toast.error("লগআউট করতে সমস্যা হয়েছে");
         }
     };
@@ -50,7 +50,7 @@ export default function Navbar() {
                     <div className="w-12 h-12 relative rounded-2xl overflow-hidden shadow-sm flex items-center justify-center bg-[#3c7844]">
                         <Image
                             src="/logo-icon.png"
-                            alt="লোগো"
+                            alt="বাজার দর লোগো"
                             width={48}
                             height={48}
                             className="object-contain p-1"
@@ -95,7 +95,7 @@ export default function Navbar() {
                                     )}
                                 </div>
                                 <span className="text-sm font-bold text-gray-800 hidden sm:inline">
-                                    {user.name}
+                                    {user.name || "User"}
                                 </span>
                                 <span className="text-xs text-gray-500">▼</span>
                             </div>
@@ -109,9 +109,6 @@ export default function Navbar() {
                                 </li>
                                 <li>
                                     <Link href="/profile">আমার প্রোফাইল</Link>
-                                </li>
-                                <li>
-                                    <Link href="/profile/update">তথ্য আপডেট করুন</Link>
                                 </li>
                                 <li>
                                     <button onClick={handleSignOut} className="text-red-600 font-semibold">
