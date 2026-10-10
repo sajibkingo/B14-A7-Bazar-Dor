@@ -32,8 +32,9 @@ export default function SignInPage() {
             } else {
                 toast.success("সফলভাবে লগইন হয়েছে");
                 router.push("/");
+                router.refresh();
             }
-        } catch (err) {
+        } catch {
             toast.error("লগইন করতে সমস্যা হয়েছে");
         } finally {
             setLoading(false);
@@ -46,7 +47,7 @@ export default function SignInPage() {
                 provider,
                 callbackURL: "/",
             });
-        } catch (err) {
+        } catch {
             toast.error(`${provider} দিয়ে সাইন ইন করতে সমস্যা হয়েছে`);
         }
     };
