@@ -7,7 +7,11 @@ const client = new MongoClient(uri);
 const db = client.db("bazar-dor");
 
 export const auth = betterAuth({
-    baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    baseURL: process.env.NEXT_PUBLIC_APP_URL || "https://bazar-dor-kingo1.vercel.app",
+    trustedOrigins: [
+        "https://bazar-dor-kingo1.vercel.app",
+        "http://localhost:3000",
+    ],
     emailAndPassword: {
         enabled: true,
     },
