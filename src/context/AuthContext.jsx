@@ -3,20 +3,20 @@
 import React, { createContext, useContext } from "react";
 import { useSession } from "@/lib/auth-client";
 
-const AuthContext = createContext(null);
+const AuthContext = createContext({
+    user: null,
+    session: null,
+    isPending: true,
+});
 
 export function AuthProvider({ children }) {
-    const { data: session, isPending, error } = useSession();
+    const { data: sessionData, isPending } = useSession();
+
+    const user = sessionData?.user || null;
+    const session = sessionData?.session || null;
 
     return (
-        <AuthContext.Provider
-            value={{
-                session,
-                user: session?.user || null,
-                isPending,
-                error,
-            }}
-        >
+        <AuthContext.Provider value={{ user, session, isPending }}>
             {children}
         </AuthContext.Provider>
     );
