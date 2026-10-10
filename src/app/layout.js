@@ -4,7 +4,7 @@ import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import PriceTicker from "@/components/PriceTicker";
-// import Footer from "@/components/Footer";
+import Footer from "@/components/Footer";
 
 export const metadata = {
   title: "বাজার দর | নিত্যপণ্যের হালনাগাদ দাম",
@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}
           </main>
-          {/* <Footer /> */}
+          <Footer />
         </AuthProvider>
       </body>
     </html>
