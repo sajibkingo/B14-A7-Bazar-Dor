@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -8,21 +8,59 @@ import { signOut } from "@/lib/auth-client";
 import { getBengaliDate } from "@/lib/utils";
 import { toast } from "react-toastify";
 
+const CATEGORY_MAP = {
+    chal: { name: "চাল", icon: "🍚" },
+    dal: { name: "ডাল", icon: "🫘" },
+    tel: { name: "তেল", icon: "🛢️" },
+    oil: { name: "তেল", icon: "🛢️" },
+    sobji: { name: "সবজি", icon: "🥬" },
+    mach: { name: "মাছ", icon: "🐟" },
+    mangsho: { name: "মাংস", icon: "🍗" },
+    "dim-dudh": { name: "ডিম-দুধ", icon: "🥛" },
+    "dim-dui": { name: "ডিম-দুধ", icon: "🥛" },
+    mosla: { name: "মসলা", icon: "🌶️" },
+    moshla: { name: "মসলা", icon: "🌶️" },
+};
+
 const DEFAULT_CATEGORIES = [
     { id: "chal", name: "চাল", icon: "🍚" },
     { id: "dal", name: "ডাল", icon: "🫘" },
-    { id: "oil", name: "তেল", icon: "🛢️" },
+    { id: "tel", name: "তেল", icon: "🛢️" },
     { id: "sobji", name: "সবজি", icon: "🥬" },
     { id: "mach", name: "মাছ", icon: "🐟" },
     { id: "mangsho", name: "মাংস", icon: "🍗" },
     { id: "dim-dudh", name: "ডিম-দুধ", icon: "🥛" },
-    { id: "moshla", name: "মসলা", icon: "🌶️" },
+    { id: "mosla", name: "মসলা", icon: "🌶️" },
 ];
 
-export default function Navbar({ initialCategories = [] }) {
+export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
     const { user } = useAuth();
+    const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+
+    useEffect(() => {
+        fetch("https://api.api-store.workers.dev/api/bazardor/categories")
+            .then((res) => res.json())
+            .then((data) => {
+                const list = Array.isArray(data)
+                    ? data
+                    : data?.data || data?.categories || [];
+                if (list.length > 0) {
+                    const mapped = list.map((cat) => {
+                        const rawId = String(cat.id || cat.slug || "").toLowerCase();
+                        const config = CATEGORY_MAP[rawId];
+                        return {
+                            id: rawId,
+                            name: config ? config.name : (cat.name_bn || cat.name || "ক্যাটাগরি"),
+                            icon: config ? config.icon : (cat.icon || cat.emoji || "🛒"),
+                        };
+                    });
+                    setCategories(mapped);
+                }
+            })
+            .catch((err) => console.error("Error fetching categories:", err));
+    }, []);
 
     const handleSignOut = async () => {
         try {
@@ -34,36 +72,20 @@ export default function Navbar({ initialCategories = [] }) {
         }
     };
 
-    const categories =
-        initialCategories && initialCategories.length > 0
-            ? initialCategories.map((cat) => {
-                const matched = DEFAULT_CATEGORIES.find(
-                    (c) =>
-                        c.id === (cat.id || cat.slug) ||
-                        c.name === (cat.name || cat.title)
-                );
-                return {
-                    id: cat.id || cat.slug || cat.name,
-                    name: cat.name || cat.title,
-                    icon: cat.icon || matched?.icon || "🛒",
-                };
-            })
-            : DEFAULT_CATEGORIES;
-
     return (
-        <header className="w-full bg-base-100 border-b border-base-300 sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+        <header className="w-full bg-[#fafbf9] border-b border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-[#3c7844] rounded-2xl flex items-center justify-center text-white text-2xl shadow-sm">
                         🛒
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-2xl font-black text-neutral tracking-tight leading-none">
+                        <span className="text-2xl font-black text-gray-900 tracking-tight leading-none">
                             বাজার দর
                         </span>
                         <span
                             suppressHydrationWarning
-                            className="text-xs text-base-content/70 font-medium mt-1"
+                            className="text-xs text-gray-500 font-medium mt-1.5"
                         >
                             {typeof window !== "undefined"
                                 ? getBengaliDate()
@@ -72,33 +94,39 @@ export default function Navbar({ initialCategories = [] }) {
                     </div>
                 </Link>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     {user ? (
                         <div className="dropdown dropdown-end">
                             <div
                                 tabIndex={0}
                                 role="button"
-                                className="btn btn-ghost btn-circle avatar"
+                                className="flex items-center gap-2.5 p-1 rounded-full hover:bg-gray-100 transition cursor-pointer"
                             >
-                                <div className="w-10 rounded-full border border-base-300">
+                                <div className="w-10 h-10 rounded-full border border-gray-200 overflow-hidden">
                                     {user.image ? (
-                                        <img src={user.image} alt={user.name || "User"} />
+                                        <img
+                                            src={user.image}
+                                            alt={user.name || "User"}
+                                            className="w-full h-full object-cover"
+                                        />
                                     ) : (
                                         <div className="w-full h-full bg-[#3c7844] text-white flex items-center justify-center font-bold">
                                             {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                                         </div>
                                     )}
                                 </div>
+                                <span className="text-sm font-bold text-gray-800 hidden sm:inline">
+                                    {user.name || "Rezwan"}
+                                </span>
+                                <span className="text-xs text-gray-500">▼</span>
                             </div>
                             <ul
                                 tabIndex={0}
-                                className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52 border border-base-200"
+                                className="mt-3 z-[50] p-2 shadow-lg menu menu-sm dropdown-content bg-white rounded-xl w-52 border border-gray-100"
                             >
-                                <li className="menu-title px-4 py-2 border-b border-base-200">
-                                    <span className="font-semibold text-neutral">{user.name}</span>
-                                    <span className="text-xs text-base-content/60 lowercase">
-                                        {user.email}
-                                    </span>
+                                <li className="menu-title px-4 py-2 border-b border-gray-100">
+                                    <span className="font-semibold text-gray-900">{user.name}</span>
+                                    <span className="text-xs text-gray-400 lowercase">{user.email}</span>
                                 </li>
                                 <li>
                                     <Link href="/profile">আমার প্রোফাইল</Link>
@@ -107,7 +135,7 @@ export default function Navbar({ initialCategories = [] }) {
                                     <Link href="/profile/update">তথ্য আপডেট করুন</Link>
                                 </li>
                                 <li>
-                                    <button onClick={handleSignOut} className="text-error">
+                                    <button onClick={handleSignOut} className="text-red-600 font-semibold">
                                         লগআউট
                                     </button>
                                 </li>
@@ -115,12 +143,15 @@ export default function Navbar({ initialCategories = [] }) {
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <Link href="/signin" className="btn btn-ghost btn-sm sm:btn-md">
+                            <Link
+                                href="/signin"
+                                className="px-4 py-1.5 text-sm font-semibold text-gray-700 hover:text-emerald-700 hover:bg-gray-100 rounded-lg transition"
+                            >
                                 সাইন ইন
                             </Link>
                             <Link
                                 href="/signup"
-                                className="btn btn-sm sm:btn-md bg-[#3c7844] hover:bg-[#326438] text-white border-none"
+                                className="px-4 py-1.5 text-sm font-semibold text-white bg-[#3c7844] hover:bg-[#326438] rounded-lg shadow-sm transition"
                             >
                                 সাইন আপ
                             </Link>
@@ -129,9 +160,9 @@ export default function Navbar({ initialCategories = [] }) {
                 </div>
             </div>
 
-            <nav className="border-t border-base-200 bg-base-100">
+            <nav className="border-t border-gray-100 bg-[#fafbf9]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center gap-2 overflow-x-auto py-2.5 no-scrollbar">
+                    <div className="flex items-center gap-6 overflow-x-auto py-2.5 no-scrollbar">
                         {categories.map((cat) => {
                             const href = `/category/${cat.id}`;
                             const isActive = pathname === href;
@@ -140,9 +171,9 @@ export default function Navbar({ initialCategories = [] }) {
                                 <Link
                                     key={cat.id}
                                     href={href}
-                                    className={`btn btn-sm whitespace-nowrap ${isActive
-                                            ? "btn-active bg-emerald-50 text-emerald-800 border-emerald-300"
-                                            : "btn-ghost"
+                                    className={`inline-flex items-center gap-1.5 text-sm whitespace-nowrap transition-colors ${isActive
+                                            ? "text-emerald-800 font-bold"
+                                            : "text-gray-700 font-medium hover:text-black"
                                         }`}
                                 >
                                     <span className="text-base">{cat.icon}</span>

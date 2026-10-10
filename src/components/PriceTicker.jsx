@@ -1,45 +1,105 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { formatBengaliPrice, toBengaliNumber } from "@/lib/utils";
+import { formatBengaliPrice, toBengaliNumber, parseNumericValue } from "@/lib/utils";
 
-export default function PriceTicker({ products = [] }) {
-    if (!products || products.length === 0) return null;
+const UNIT_MAP = {
+    kg: "কেজি",
+    litre: "লিটার",
+    liter: "লিটার",
+    dozen: "ডজন",
+    piece: "পিস",
+    gm: "গ্রাম",
+    gram: "গ্রাম",
+    "প্রতি কেজি": "কেজি",
+    "প্রতি লিটার": "লিটার",
+    "প্রতি ডজন": "ডজন",
+    "প্রতি পিস": "পিস",
+};
 
-    const displayItems = [...products, ...products];
+export default function PriceTicker() {
+    const [items, setItems] = useState([]);
+
+    useEffect(() => {
+        async function fetchTickerData() {
+            try {
+                const res = await fetch("https://api.api-store.workers.dev/api/bazardor/products");
+                if (!res.ok) return;
+                const data = await res.json();
+                const list = Array.isArray(data)
+                    ? data
+                    : data?.data || data?.products || [];
+                setItems(list);
+            } catch (err) {
+                console.error("Ticker fetch failed:", err);
+            }
+        }
+
+        fetchTickerData();
+    }, []);
+
+    if (!items || items.length === 0) return null;
+
+    const displayItems = [...items, ...items, ...items];
 
     return (
-        <div className="w-full bg-[#1b241d] text-white overflow-hidden py-2 border-b border-gray-800 select-none">
-            <div className="flex w-max animate-marquee hover:[animation-play-state:paused]">
+        <div className="w-full bg-white border-b border-gray-200 overflow-hidden py-2.5 select-none">
+            <div className="flex w-max animate-marquee hover:[animation-play-state:paused] items-center">
                 {displayItems.map((item, index) => {
-                    const change = item.change ?? item.priceChange ?? 0;
-                    const isUp = change > 0;
-                    const isDown = change < 0;
+                    const rawPrice =
+                        item.price ??
+                        item.todayPrice ??
+                        item.today_price ??
+                        item.currentPrice ??
+                        item.current_price ??
+                        0;
+
+                    const rawChange =
+                        item.change ??
+                        item.changePercent ??
+                        item.change_percent ??
+                        item.change_percentage ??
+                        item.priceChange ??
+                        item.price_change ??
+                        0;
+
+                    const numChange = parseNumericValue(rawChange);
+                    const isUp = numChange > 0;
+                    const isDown = numChange < 0;
 
                     const changeBadgeColor = isUp
-                        ? "text-emerald-400"
+                        ? "text-[#c23b38]"
                         : isDown
-                            ? "text-rose-400"
-                            : "text-gray-400";
+                            ? "text-[#2e7d32]"
+                            : "text-gray-500";
 
                     const changeSymbol = isUp ? "▲" : isDown ? "▼" : "—";
-                    const formattedChange = toBengaliNumber(Math.abs(change).toFixed(1));
-                    const unit = item.unit || "কেজি";
+                    const formattedChange = toBengaliNumber(Math.abs(numChange).toFixed(1));
+
+                    const rawUnit = item.unit || item.unit_bn || "কেজি";
+                    const unit =
+                        UNIT_MAP[String(rawUnit).trim().toLowerCase()] ||
+                        String(rawUnit).replace("প্রতি ", "");
+
+                    const title = item.name || item.name_bn || item.title || "পণ্য";
+                    const id = item.id || item.slug || index;
+                    const emoji = item.emoji || item.icon || "🍚";
 
                     return (
                         <Link
-                            key={`${item.id || item.slug || index}-${index}`}
-                            href={`/product/${item.id || item.slug}`}
-                            className="inline-flex items-center gap-2 mx-5 text-xs sm:text-sm font-medium hover:text-emerald-300 transition shrink-0"
+                            key={`${id}-${index}`}
+                            href={`/product/${id}`}
+                            className="inline-flex items-center gap-2 px-6 border-r border-gray-200 text-sm font-semibold text-gray-900 shrink-0 hover:text-emerald-700 transition"
                         >
-                            <span>{item.emoji || "📦"}</span>
-                            <span className="text-gray-200">{item.name || item.title}</span>
-                            <span className="text-gray-400 font-normal">
-                                {formatBengaliPrice(item.price || item.currentPrice)} টাকা/{unit}
+                            <span className="text-base">{emoji}</span>
+                            <span className="font-bold text-gray-900">{title}</span>
+                            <span className="text-gray-700 font-medium">
+                                {formatBengaliPrice(rawPrice)} টাকা/{unit}
                             </span>
-                            <span className={`inline-flex items-center text-xs font-semibold ${changeBadgeColor}`}>
-                                {changeSymbol} {formattedChange}%
+                            <span className={`inline-flex items-center gap-1 font-bold ${changeBadgeColor}`}>
+                                <span>{changeSymbol}</span>
+                                <span>{formattedChange}%</span>
                             </span>
                         </Link>
                     );
