@@ -9,58 +9,28 @@ import { signOut } from "@/lib/auth-client";
 import { getBengaliDate } from "@/lib/utils";
 import { toast } from "react-toastify";
 
-const CATEGORY_MAP = {
-    chal: { name: "চাল", icon: "🍚" },
-    dal: { name: "ডাল", icon: "🫘" },
-    tel: { name: "তেল", icon: "🛢️" },
-    oil: { name: "তেল", icon: "🛢️" },
-    sobji: { name: "সবজি", icon: "🥬" },
-    mach: { name: "মাছ", icon: "🐟" },
-    mangsho: { name: "মাংস", icon: "🍗" },
-    "dim-dudh": { name: "ডিম-দুধ", icon: "🥛" },
-    "dim-dui": { name: "ডিম-দুধ", icon: "🥛" },
-    mosla: { name: "মসলা", icon: "🌶️" },
-    moshla: { name: "মসলা", icon: "🌶️" },
-};
-
-const DEFAULT_CATEGORIES = [
-    { id: "chal", name: "চাল", icon: "🍚" },
-    { id: "dal", name: "ডাল", icon: "🫘" },
-    { id: "tel", name: "তেল", icon: "🛢️" },
-    { id: "sobji", name: "সবজি", icon: "🥬" },
-    { id: "mach", name: "মাছ", icon: "🐟" },
-    { id: "mangsho", name: "মাংস", icon: "🍗" },
-    { id: "dim-dudh", name: "ডিম-দুধ", icon: "🥛" },
-    { id: "mosla", name: "মসলা", icon: "🌶️" },
-];
-
 export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
     const { user } = useAuth();
-    const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+    const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-        fetch("https://api.api-store.workers.dev/api/bazardor/categories")
-            .then((res) => res.json())
-            .then((data) => {
+        async function loadCategories() {
+            try {
+                const res = await fetch("https://api.api-store.workers.dev/api/bazardor/categories");
+                if (!res.ok) return;
+                const data = await res.json();
                 const list = Array.isArray(data)
                     ? data
                     : data?.data || data?.categories || [];
-                if (list.length > 0) {
-                    const mapped = list.map((cat) => {
-                        const rawId = String(cat.id || cat.slug || "").toLowerCase();
-                        const config = CATEGORY_MAP[rawId];
-                        return {
-                            id: rawId,
-                            name: config ? config.name : (cat.name_bn || cat.name || "ক্যাটাগরি"),
-                            icon: config ? config.icon : (cat.icon || cat.emoji || "🛒"),
-                        };
-                    });
-                    setCategories(mapped);
-                }
-            })
-            .catch((err) => console.error("Error fetching categories:", err));
+                setCategories(list);
+            } catch (err) {
+                console.error("Categories fetch error:", err);
+            }
+        }
+
+        loadCategories();
     }, []);
 
     const handleSignOut = async () => {
@@ -80,7 +50,7 @@ export default function Navbar() {
                     <div className="w-12 h-12 relative rounded-2xl overflow-hidden shadow-sm flex items-center justify-center bg-[#3c7844]">
                         <Image
                             src="/logo-icon.png"
-                            alt="বাজার দর লোগো"
+                            alt="লোগো"
                             width={48}
                             height={48}
                             className="object-contain p-1"
@@ -125,7 +95,7 @@ export default function Navbar() {
                                     )}
                                 </div>
                                 <span className="text-sm font-bold text-gray-800 hidden sm:inline">
-                                    {user.name || "User"}
+                                    {user.name}
                                 </span>
                                 <span className="text-xs text-gray-500">▼</span>
                             </div>
@@ -173,12 +143,12 @@ export default function Navbar() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-6 overflow-x-auto py-2.5 no-scrollbar">
                         {categories.map((cat) => {
-                            const href = `/category/${cat.id}`;
+                            const href = `/category/${cat.id || cat.slug}`;
                             const isActive = pathname === href;
 
                             return (
                                 <Link
-                                    key={cat.id}
+                                    key={cat.id || cat.slug}
                                     href={href}
                                     className={`inline-flex items-center gap-1.5 text-sm whitespace-nowrap transition-colors ${isActive
                                             ? "text-emerald-800 font-bold"
@@ -186,7 +156,7 @@ export default function Navbar() {
                                         }`}
                                 >
                                     <span className="text-base">{cat.icon}</span>
-                                    <span>{cat.name}</span>
+                                    <span>{cat.nameBn}</span>
                                 </Link>
                             );
                         })}

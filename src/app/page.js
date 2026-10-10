@@ -4,53 +4,40 @@ import React, { useState, useEffect } from "react";
 import HeroBanner from "@/components/HeroBanner";
 import ProductCard from "@/components/ProductCard";
 import Skeleton from "@/components/Skeleton";
-import { parseNumericValue, toBengaliNumber } from "@/lib/utils";
+import { toBengaliNumber } from "@/lib/utils";
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadProducts() {
+    async function loadData() {
       try {
         const res = await fetch("https://api.api-store.workers.dev/api/bazardor/products");
-        if (!res.ok) throw new Error("Failed to fetch products");
+        if (!res.ok) throw new Error("Fetch failed");
         const data = await res.json();
         const list = Array.isArray(data)
           ? data
           : data?.data || data?.products || [];
         setProducts(list);
       } catch (err) {
-        console.error("Error loading products:", err);
+        console.error("Products fetch error:", err);
       } finally {
         setLoading(false);
       }
     }
-    loadProducts();
+
+    loadData();
   }, []);
 
   const risers = [...products]
-    .filter((p) => {
-      const ch = parseNumericValue(p.change ?? p.changePercent ?? p.change_percent ?? 0);
-      return ch > 0;
-    })
-    .sort((a, b) => {
-      const chA = parseNumericValue(a.change ?? a.changePercent ?? a.change_percent ?? 0);
-      const chB = parseNumericValue(b.change ?? b.changePercent ?? b.change_percent ?? 0);
-      return chB - chA;
-    })
+    .filter((p) => p.change?.dir === "up" || (p.change?.pct ?? 0) > 0)
+    .sort((a, b) => (b.change?.pct ?? 0) - (a.change?.pct ?? 0))
     .slice(0, 6);
 
   const fallers = [...products]
-    .filter((p) => {
-      const ch = parseNumericValue(p.change ?? p.changePercent ?? p.change_percent ?? 0);
-      return ch < 0;
-    })
-    .sort((a, b) => {
-      const chA = parseNumericValue(a.change ?? a.changePercent ?? a.change_percent ?? 0);
-      const chB = parseNumericValue(b.change ?? b.changePercent ?? b.change_percent ?? 0);
-      return chA - chB;
-    })
+    .filter((p) => p.change?.dir === "down" || (p.change?.pct ?? 0) < 0)
+    .sort((a, b) => (a.change?.pct ?? 0) - (b.change?.pct ?? 0))
     .slice(0, 6);
 
   return (
@@ -59,7 +46,7 @@ export default function HomePage() {
 
       <section>
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-[#d32f2f] text-sm">▲</span>
+          <span className="text-[#d32f2f] text-sm font-bold">▲</span>
           <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
             আজ দাম বেড়েছে
           </h2>
@@ -82,7 +69,7 @@ export default function HomePage() {
 
       <section>
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-[#2e7d32] text-sm">▼</span>
+          <span className="text-[#2e7d32] text-sm font-bold">▼</span>
           <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
             আজ দাম কমেছে
           </h2>
