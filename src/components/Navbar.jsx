@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { signOut } from "@/lib/auth-client";
@@ -76,8 +77,15 @@ export default function Navbar() {
         <header className="w-full bg-[#fafbf9] border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-[#3c7844] rounded-2xl flex items-center justify-center text-white text-2xl shadow-sm">
-                        🛒
+                    <div className="w-12 h-12 relative rounded-2xl overflow-hidden shadow-sm flex items-center justify-center bg-[#3c7844]">
+                        <Image
+                            src="/logo-icon.png"
+                            alt="বাজার দর লোগো"
+                            width={48}
+                            height={48}
+                            className="object-contain p-1"
+                            priority
+                        />
                     </div>
                     <div className="flex flex-col">
                         <span className="text-2xl font-black text-gray-900 tracking-tight leading-none">
@@ -102,12 +110,13 @@ export default function Navbar() {
                                 role="button"
                                 className="flex items-center gap-2.5 p-1 rounded-full hover:bg-gray-100 transition cursor-pointer"
                             >
-                                <div className="w-10 h-10 rounded-full border border-gray-200 overflow-hidden">
+                                <div className="w-10 h-10 rounded-full border border-gray-200 overflow-hidden relative">
                                     {user.image ? (
-                                        <img
+                                        <Image
                                             src={user.image}
                                             alt={user.name || "User"}
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            className="object-cover"
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-[#3c7844] text-white flex items-center justify-center font-bold">
@@ -116,7 +125,7 @@ export default function Navbar() {
                                     )}
                                 </div>
                                 <span className="text-sm font-bold text-gray-800 hidden sm:inline">
-                                    {user.name || "Rezwan"}
+                                    {user.name || "User"}
                                 </span>
                                 <span className="text-xs text-gray-500">▼</span>
                             </div>

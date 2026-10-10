@@ -12,10 +12,6 @@ const UNIT_MAP = {
     piece: "পিস",
     gm: "গ্রাম",
     gram: "গ্রাম",
-    "প্রতি কেজি": "কেজি",
-    "প্রতি লিটার": "লিটার",
-    "প্রতি ডজন": "ডজন",
-    "প্রতি পিস": "পিস",
 };
 
 export default function ProductCard({ product }) {
@@ -26,6 +22,7 @@ export default function ProductCard({ product }) {
         product.todayPrice ??
         product.today_price ??
         product.currentPrice ??
+        product.current_price ??
         0;
 
     const rawChange =
@@ -33,62 +30,68 @@ export default function ProductCard({ product }) {
         product.changePercent ??
         product.change_percent ??
         product.priceChange ??
+        product.price_change ??
         0;
 
     const numChange = parseNumericValue(rawChange);
     const isUp = numChange > 0;
     const isDown = numChange < 0;
 
-    const changeBadgeBg = isUp
-        ? "bg-rose-50 text-[#c23b38] border-rose-200"
+    const badgeStyle = isUp
+        ? "bg-[#fdf0ed] text-[#d32f2f]"
         : isDown
-            ? "bg-emerald-50 text-[#2e7d32] border-emerald-200"
-            : "bg-gray-100 text-gray-600 border-gray-200";
+            ? "bg-[#edf7ed] text-[#2e7d32]"
+            : "bg-[#f4f5f4] text-gray-500";
 
     const changeSymbol = isUp ? "▲" : isDown ? "▼" : "—";
-    const formattedChange = toBengaliNumber(Math.abs(numChange).toFixed(1));
+    const formattedPercent = isUp || isDown
+        ? toBengaliNumber(Math.abs(numChange).toFixed(1))
+        : "০.০";
 
-    const rawUnit = product.unit || product.unit_bn || "কেজি";
-    const unitClean = String(rawUnit).trim().toLowerCase();
-    const unit = UNIT_MAP[unitClean] || String(rawUnit).replace("প্রতি ", "");
+    let rawUnit = product.unit || product.unit_bn || "কেজি";
+    rawUnit = String(rawUnit).trim();
+    const cleanUnitKey = rawUnit.replace(/^প্রতি\s*/, "").toLowerCase();
+    const unitName = UNIT_MAP[cleanUnitKey] || rawUnit.replace(/^প্রতি\s*/, "");
+    const displayUnit = `প্রতি ${unitName}`;
 
     const title = product.name || product.name_bn || product.title || "পণ্য";
-    const id = product.id || product.slug;
+    const id = product.id ?? product.slug;
     const emoji = product.emoji || product.icon || "🍚";
 
     return (
         <Link
             href={`/product/${id}`}
-            className="bg-white rounded-2xl border border-gray-200 p-5 hover:border-emerald-500 hover:shadow-lg transition duration-200 flex flex-col justify-between group"
+            className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-gray-200 transition-all duration-200 flex flex-col justify-between"
         >
-            <div>
-                <div className="flex items-center justify-between mb-4">
-                    <div className="w-14 h-14 bg-gray-50 group-hover:bg-emerald-50/50 rounded-xl flex items-center justify-center text-3xl transition">
-                        {emoji}
-                    </div>
-                    <span
-                        className={`text-xs font-bold px-2.5 py-1 rounded-full border inline-flex items-center gap-1 ${changeBadgeBg}`}
-                    >
-                        <span>{changeSymbol}</span>
-                        <span>{formattedChange}%</span>
-                    </span>
+            <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-xl bg-[#f6f8f6] flex items-center justify-center text-2xl shrink-0">
+                    {emoji}
                 </div>
-
-                <h3 className="font-bold text-gray-900 text-lg group-hover:text-emerald-700 transition line-clamp-1">
-                    {title}
-                </h3>
-                <p className="text-xs text-gray-500 mt-1 font-medium">প্রতি {unit}</p>
+                <div className="min-w-0">
+                    <h3 className="font-bold text-gray-900 text-base leading-snug truncate">
+                        {title}
+                    </h3>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5">
+                        {displayUnit}
+                    </p>
+                </div>
             </div>
 
-            <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
+            <div className="flex items-end justify-between mt-6 pt-1">
                 <div>
-                    <span className="text-xs text-gray-400 block font-medium">আজকের দাম</span>
-                    <span className="text-lg font-black text-gray-900">
+                    <span className="text-xs text-gray-400 block font-normal">
+                        আজকের দাম
+                    </span>
+                    <span className="text-xl font-black text-gray-900 leading-none mt-1 inline-block">
                         {formatBengaliPrice(rawPrice)} টাকা
                     </span>
                 </div>
-                <span className="text-xs font-bold text-emerald-700 group-hover:translate-x-1 transition">
-                    বিস্তারিত →
+
+                <span
+                    className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${badgeStyle}`}
+                >
+                    <span>{changeSymbol}</span>
+                    <span>{formattedPercent}%</span>
                 </span>
             </div>
         </Link>
