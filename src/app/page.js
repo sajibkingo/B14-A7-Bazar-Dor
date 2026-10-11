@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import HeroBanner from "@/components/HeroBanner";
 import ProductCard from "@/components/ProductCard";
 import Skeleton from "@/components/Skeleton";
+import { toBengaliNumber } from "@/lib/utils";
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
@@ -12,7 +13,9 @@ export default function HomePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await fetch("https://api.api-store.workers.dev/api/bazardor/products");
+        const res = await fetch(
+          "https://api.api-store.workers.dev/api/bazardor/products"
+        );
         if (!res.ok) throw new Error("Failed to fetch products");
         const json = await res.json();
         const list = Array.isArray(json)
@@ -36,22 +39,23 @@ export default function HomePage() {
     <div className="w-full space-y-12 pb-16 font-sans">
       <HeroBanner />
 
+      {/* Aj dam bereche */}
       <section>
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl">📈</span>
+        <div className="flex items-center gap-2.5 mb-5">
+          <span className="text-[#dc2626] text-xs">▲</span>
           <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-            আজ যেসব পণ্যের দাম বেড়েছে
+            আজ দাম বেড়েছে
           </h2>
         </div>
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} />
             ))}
           </div>
         ) : risers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {risers.slice(0, 6).map((item) => (
+            {risers.map((item) => (
               <ProductCard key={item.id} product={item} />
             ))}
           </div>
@@ -62,22 +66,23 @@ export default function HomePage() {
         )}
       </section>
 
+      {/* Aj dam komeche */}
       <section>
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl">📉</span>
+        <div className="flex items-center gap-2.5 mb-5">
+          <span className="text-[#16a34a] text-xs">▼</span>
           <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-            আজ যেসব পণ্যের দাম কমেছে
+            আজ দাম কমেছে
           </h2>
         </div>
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} />
             ))}
           </div>
         ) : fallers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {fallers.slice(0, 6).map((item) => (
+            {fallers.map((item) => (
               <ProductCard key={item.id} product={item} />
             ))}
           </div>
@@ -88,12 +93,15 @@ export default function HomePage() {
         )}
       </section>
 
-      <section>
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl">🛒</span>
+      {/* Shob ponno */}
+      <section id="all-products" className="scroll-mt-10">
+        <div className="mb-5">
           <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-            সকল নিত্যপ্রয়োজনীয় পণ্য
+            সব পণ্য
           </h2>
+          <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
+            মোট {toBengaliNumber(products.length)}টি পণ্য দেখানো হচ্ছে
+          </p>
         </div>
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

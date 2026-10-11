@@ -2,60 +2,53 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { getBengaliDate } from "@/lib/utils";
 
 export default function HeroBanner() {
-    const handleScrollToProducts = () => {
-        const target = document.getElementById("সব-পণ্য");
-        if (target) {
-            target.scrollIntoView({ behavior: "smooth" });
+    const handleScroll = (e) => {
+        e.preventDefault();
+        const element = document.getElementById("all-products");
+        if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
         }
     };
 
     return (
-        <section className="w-full bg-[#f4f7f4]/80 rounded-[32px] border border-gray-100 p-8 sm:p-12 lg:p-14 mb-10 shadow-sm relative overflow-hidden">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-                <div className="w-full lg:max-w-2xl flex flex-col items-start">
-                    <div
-                        suppressHydrationWarning
-                        className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#e2ece2] text-[#3c7844] text-xs sm:text-sm font-semibold mb-6 tracking-wide"
-                    >
-                        {typeof window !== "undefined"
-                            ? getBengaliDate()
-                            : "মঙ্গলবার, ৬ অক্টোবর, ২০২৬"}
-                    </div>
+        <div className="w-full bg-[#fcfdfc] border border-gray-100 rounded-3xl p-6 sm:p-10 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col-reverse md:flex-row items-center justify-between gap-8">
+            <div className="space-y-4 max-w-xl">
+                <div className="inline-block bg-[#eef5ee] text-[#3c7844] font-semibold text-xs px-3 py-1.5 rounded-full">
+                    {getBengaliDate()}
+                </div>
 
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1b231c] tracking-tight leading-tight mb-4">
-                        আজকের বাজারের দাম এক নজরে
-                    </h1>
+                <h1 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight">
+                    আজকের বাজারের দাম এক নজরে
+                </h1>
 
-                    <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-l mb-8">
-                        চাল, ডাল, তেল, সবজি, মাছ, মাংস, ডিম ও মসলার দাম — বাজারভিত্তিক বিস্তারিত,
-                        গড়, সর্বনিম্ন-সর্বাধিক এবং দামের পরিবর্তন এক জায়গায়।
-                    </p>
+                <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+                    চাল, ডাল, তেল, সবজি, মাছ, মাংস, ডিম ও মসলার দাম — বাজারভিত্তিক বিস্তারিত, গড়, সর্বনিম্ন-সর্বাধিক এবং দামের পরিবর্তন এক জায়গায়।
+                </p>
 
-                    <button
-                        onClick={handleScrollToProducts}
-                        className="px-6 py-3 bg-[#3f7d45] hover:bg-[#346a39] active:scale-95 text-white font-bold text-sm sm:text-base rounded-xl shadow-[0_4px_14px_0_rgba(63,125,69,0.39)] transition-all duration-200 cursor-pointer"
+                <div>
+                    <a
+                        href="#all-products"
+                        onClick={handleScroll}
+                        className="inline-block px-6 py-2.5 bg-[#3f7d45] hover:bg-[#346a39] active:scale-[0.98] text-white font-bold rounded-xl text-sm shadow-[0_4px_14px_rgba(63,125,69,0.25)] transition cursor-pointer"
                     >
                         সব পণ্য দেখুন
-                    </button>
-                </div>
-
-                <div className="w-full lg:w-auto flex justify-center items-center shrink-0">
-                    <div className="relative w-64 sm:w-72 lg:w-80 h-64 sm:h-72 lg:h-80 flex items-center justify-center">
-                        <div className="absolute bottom-1 w-56 sm:w-64 h-6 bg-[#000000]/10 rounded-[100%] blur-sm pointer-events-none" />
-                        <Image
-                            src="/bazar-hero.png"
-                            alt="বাজারের ফলের ঝুড়ি"
-                            width={320}
-                            height={320}
-                            className="object-contain relative z-10 drop-shadow-sm select-none"
-                            priority
-                        />
-                    </div>
+                    </a>
                 </div>
             </div>
-        </section>
+
+            <div className="w-48 h-48 sm:w-64 sm:h-64 relative shrink-0">
+                <Image
+                    src="/bazar-hero.png"
+                    alt="বাজার ঝুড়ি"
+                    fill
+                    priority
+                    className="object-contain"
+                />
+            </div>
+        </div>
     );
 }
